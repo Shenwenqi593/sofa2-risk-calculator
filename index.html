@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOFA 2.0 脓毒症院内死亡风险预测计算器（研究版）</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "SimSun", sans-serif;
+    background: #eef1f5;
+    color: #1a1a1a;
+    line-height: 1.6;
+  }
+  .container { max-width: 780px; margin: 0 auto; padding: 20px 16px 40px; }
+  header {
+    background: #1F3864;
+    color: #fff;
+    padding: 22px 20px;
+    border-radius: 8px 8px 0 0;
+  }
+  header h1 { font-size: 20px; font-weight: bold; }
+  header p { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+  .card {
+    background: #fff;
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  h2 { font-size: 16px; color: #1F3864; margin-bottom: 14px; border-left: 4px solid #C8102E; padding-left: 10px; }
+  .form-row { display: flex; flex-wrap: wrap; gap: 16px; }
+  .form-group { flex: 1; min-width: 180px; }
+  label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #333; }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #c4cbd6;
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: inherit;
+  }
+  input[type="number"]:focus { outline: 2px solid #1F3864; border-color: transparent; }
+  .hint { font-size: 12px; color: #7a8494; margin-top: 4px; }
+  .btn-row { margin-top: 18px; display: flex; gap: 12px; }
+  button {
+    padding: 11px 28px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  #calcBtn { background: #C8102E; color: #fff; }
+  #calcBtn:hover { background: #a80d26; }
+  #resetBtn { background: #e3e7ee; color: #333; }
+  #resetBtn:hover { background: #d2d8e2; }
+  .result {
+    display: none;
+    margin-top: 20px;
+    border-radius: 8px;
+    padding: 18px;
+    border: 2px solid;
+  }
+  .result .big { font-size: 34px; font-weight: bold; }
+  .result .label { font-size: 13px; color: #555; margin-top: 2px; }
+  .result .row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; }
+  .result .row span:first-child { color: #666; }
+  .result .row span:last-child { font-weight: bold; }
+  .grade { margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+  .warning { background: #fff4e5; border: 1px solid #f0c36d; color: #7a5b00; padding: 12px; border-radius: 6px; font-size: 13px; margin-top: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th, td { border: 1px solid #d9dee7; padding: 7px 9px; text-align: left; }
+  th { background: #eef2f9; color: #1F3864; }
+  td { text-align: center; }
+  td:first-child { text-align: left; font-weight: bold; }
+  .footer { font-size: 12px; color: #7a8494; margin-top: 24px; text-align: center; }
+  .note { font-size: 12.5px; color: #4a5568; margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 6px; }
+  code { background: #eef2f9; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .ranges { display: flex; justify-content: space-between; font-size: 12.5px; margin-top: 8px; color: #555; }
+  input:invalid { border-color: #e11d48; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>SOFA 2.0 脓毒症院内死亡风险预测计算器</h1>
+    <p>单中心外部验证 + 本地更新模型 · 研究版 v4规则-当前数据（2026-11-18）</p>
+  </header>
+
+  <div class="card">
+    <h2>输入指标</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="sofa2">SOFA 2.0 评分（重算）</label>
+        <input type="number" id="sofa2" min="0" max="24" step="1" placeholder="0–24 分" required>
+        <div class="hint">六个子系统得分之和，范围 0–24 分</div>
+      </div>
+      <div class="form-group">
+        <label for="lactate">乳酸（mmol/L）</label>
+        <input type="number" id="lactate" min="0" max="30" step="0.1" placeholder="如 5.8" required>
+        <div class="hint">血乳酸浓度，mmol/L</div>
+      </div>
+      <div class="form-group">
+        <label for="age">年龄（岁）</label>
+        <input type="number" id="age" min="14" max="120" step="1" placeholder="如 63" required>
+        <div class="hint">患者年龄，岁</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button id="calcBtn" type="button">计算死亡风险</button>
+      <button id="resetBtn" type="button">清空</button>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="label">预测院内死亡概率</div>
+    <div class="big" id="prob"></div>
+    <div class="grade" id="gradeBox"></div>
+    <div class="row"><span>SOFA 2.0 评分</span><span id="r_sofa2"></span></div>
+    <div class="row"><span>乳酸</span><span id="r_lac"></span></div>
+    <div class="row"><span>年龄</span><span id="r_age"></span></div>
+    <div class="row"><span>线性预测值 logit</span><span id="r_logit"></span></div>
+    <div class="row"><span>模型判别力 AUC</span><span>0.731（Model C：SOFA2重算+年龄+乳酸）</span></div>
+  </div>
+
+  <div class="card">
+    <h2>SOFA 2.0 六子系统评分速查（0–4 分）</h2>
+    <table>
+      <tr><th>子系统</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+      <tr><td>神经</td><td>GCS 15</td><td>13–14</td><td>9–12</td><td>6–8</td><td>3–5</td></tr>
+      <tr><td>呼吸</td><td>比值 &gt;300</td><td>&gt;225</td><td>&gt;150</td><td>75–150 且呼吸支持*</td><td>≤75 且呼吸支持*</td></tr>
+      <tr><td>循环</td><td>MAP≥70 且无血管活性药</td><td>MAP&lt;70</td><td>NE≤0.2 或其他血管活性药</td><td>NE&gt;0.2 或其他联合</td><td>NE&gt;0.4 或 MCS**</td></tr>
+      <tr><td>肝脏</td><td>胆红素 ≤1.2</td><td>≤3.0</td><td>≤6.0</td><td>≤12</td><td>&gt;12 mg/dL</td></tr>
+      <tr><td>肾脏</td><td>肌酐 ≤1.2</td><td>≤2.0</td><td>≤3.5</td><td>&gt;3.5 mg/dL</td><td>RRT 中</td></tr>
+      <tr><td>凝血</td><td>血小板 &gt;150</td><td>&gt;100</td><td>&gt;80</td><td>&gt;50</td><td>≤50 ×10⁹/L</td></tr>
+    </table>
+    <div class="note">* 呼吸支持指高流量/无创/有创通气，或 PaO₂/FiO₂≤150 时按 SpO₂/FiO₂ 替代规则。<br>** NE 单位为 μg/kg/min；MCS＝机械循环支持（ECMO 等）。胆红素、肌酐阈值见 mg/dL。</div>
+  </div>
+
+  <div class="card">
+    <h2>模型与方法</h2>
+    <p style="font-size:14px; margin-top:6px;">
+      本计算器基于<b>单中心脓毒症队列（n=253，死亡 172 例，68.0%）</b>的本地更新模型：
+    </p>
+    <div class="note">
+      logit(P) = -1.4848 + 0.1105 × SOFA 2.0（重算） + 0.0043 × 年龄 + 0.1360 × 乳酸<br>
+      P = 1 / (1 + e<sup>−logit</sup>)
+    </div>
+    <table style="margin-top:12px;">
+      <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR</th></tr>
+      <tr><td>截距</td><td>-1.4848</td><td>0.7908</td><td>0.060</td><td>0.227</td></tr>
+      <tr><td>SOFA 2.0（重算）</td><td>0.1105</td><td>0.0367</td><td>0.003</td><td>1.117</td></tr>
+      <tr><td>乳酸（mmol/L）</td><td>0.1360</td><td>0.0410</td><td>0.001</td><td>1.146</td></tr>
+      <tr><td>年龄（岁）</td><td>0.0043</td><td>0.0100</td><td>0.662</td><td>1.004</td></tr>
+    </table>
+    <p style="font-size:13px; margin-top:10px; color:#4a5568;">
+      判别力 AUC 0.731（Model C：SOFA2重算+年龄+乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95%CI 0.619–0.762），SOFA-1 AUC 0.646（95%CI 0.572–0.719）。Hosmer-Lemeshow 校准：SOFA2 p=0.320，Model C p=0.758。
+    </p>
+  </div>
+
+  <div class="warning">
+    <b>⚠️ 使用声明</b>：本计算器为<b>科研与论文辅助工具</b>，基于按 v4 规则重算/筛选的当前数据集（n=253）构建的本地更新模型，<b>尚未经多中心前瞻性外部验证</b>。结果仅供研究参考，<b>不得作为独立临床决策、诊疗或分诊依据</b>。临床使用需经当地伦理与临床决策审批。
+  </div>
+
+  <div class="footer">
+    SOFA 2.0 官方评分来源：Ranzani OT, et al. JAMA. 2025;334(23):2090<br>
+    数据来源：当前收集数据（开题, (恢复的).xlsx），按 v4 流程重算/分析 · 更新日期 2026-11-18
+  </div>
+</div>
+
+<script>
+  function fmtP(p) {
+    if (p <= 0) return "0.0%";
+    if (p >= 1) return "100.0%";
+    return (p * 100).toFixed(1) + "%";
+  }
+  function calc() {
+    var sofa2 = parseFloat(document.getElementById('sofa2').value);
+    var lac = parseFloat(document.getElementById('lactate').value);
+    var age = parseFloat(document.getElementById('age').value);
+    if (isNaN(sofa2) || isNaN(lac) || isNaN(age)) {
+      alert("请完整填写三项输入指标。");
+      return;
+    }
+    if (sofa2 < 0 || sofa2 > 24) { alert("SOFA 2.0 评分应在 0–24 分之间。"); return; }
+    var logit = -1.4848 + 0.1105 * sofa2 + 0.0043 * age + 0.1360 * lac;
+    var p = 1 / (1 + Math.exp(-logit));
+    var pct = fmtP(p);
+
+    var gradeText, gradeColor, gradeBg;
+    if (p < 0.3)      { gradeText = "低风险"; gradeColor = "#1a7f37"; gradeBg = "#e6f4ea"; }
+    else if (p < 0.5) { gradeText = "中风险"; gradeColor = "#9a6700"; gradeBg = "#fff8c5"; }
+    else if (p < 0.7) { gradeText = "高风险"; gradeColor = "#b35900"; gradeBg = "#ffe8cc"; }
+    else              { gradeText = "极高风险"; gradeColor = "#a80d26"; gradeBg = "#fde2e4"; }
+
+    document.getElementById('prob').textContent = pct;
+    var gb = document.getElementById('gradeBox');
+    gb.textContent = "风险分级：" + gradeText;
+    gb.style.color = gradeColor;
+    gb.style.background = gradeBg;
+
+    document.getElementById('r_sofa2').textContent = sofa2 + " 分";
+    document.getElementById('r_lac').textContent = lac.toFixed(1) + " mmol/L";
+    document.getElementById('r_age').textContent = age + " 岁";
+    document.getElementById('r_logit').textContent = logit.toFixed(4);
+
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').style.borderColor = gradeColor;
+  }
+  function reset() {
+    ['sofa2','lactate','age'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('result').style.display = 'none';
+  }
+  document.getElementById('calcBtn').addEventListener('click', calc);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  ['sofa2','lactate','age'].forEach(function(id){
+    document.getElementById(id).addEventListener('keydown', function(e){ if(e.key==='Enter') calc(); });
+  });
+</script>
+</body>
+</html>
