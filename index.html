@@ -5,220 +5,559 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SOFA 2.0 脓毒症院内死亡风险预测计算器（研究版）</title>
 <style>
+  :root {
+    --primary: #1f4e79;
+    --primary-dark: #163a5c;
+    --accent: #2e75b6;
+    --bg: #edf3f9;
+    --card: #ffffff;
+    --border: #dbe5f0;
+    --text: #1a2233;
+    --muted: #64748b;
+    --danger: #c62828;
+    --warn: #d97706;
+    --mid: #b45309;
+    --ok: #2e7d32;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: "Microsoft YaHei", "SimSun", sans-serif;
-    background: #eef1f5;
-    color: #1a1a1a;
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    background: radial-gradient(1200px 400px at 10% -10%, #dce9f7 0%, transparent 60%), linear-gradient(180deg, #eef4fb 0%, #f7f9fc 100%);
+    color: var(--text);
     line-height: 1.6;
   }
-  .container { max-width: 780px; margin: 0 auto; padding: 20px 16px 40px; }
+  .container { max-width: 1020px; margin: 0 auto; padding: 20px 16px 40px; }
   header {
-    background: #1F3864;
+    background: linear-gradient(135deg, #14365d 0%, #1f4e79 50%, #2b6ea8 100%);
     color: #fff;
-    padding: 22px 20px;
-    border-radius: 8px 8px 0 0;
+    padding: 24px 24px 22px;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(20,54,93,0.22);
+    position: relative;
+    overflow: hidden;
   }
-  header h1 { font-size: 20px; font-weight: bold; }
-  header p { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+  header::after {
+    content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+  }
+  .header-top { display: flex; align-items: flex-start; gap: 14px; position: relative; z-index: 1; }
+  .logo {
+    width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; flex: 0 0 44px;
+  }
+  header h1 { font-size: 23px; font-weight: 700; letter-spacing: 0.2px; }
+  header p { font-size: 13.5px; opacity: 0.95; margin-top: 6px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; position: relative; z-index: 1; }
+  .pill { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+  @media (min-width: 860px) { .grid.two { grid-template-columns: 1.05fr 0.95fr; } }
+
   .card {
-    background: #fff;
-    border: 1px solid #d9dee7;
-    border-radius: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
     padding: 20px;
-    margin-top: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 12px rgba(31,78,121,0.06);
   }
-  h2 { font-size: 16px; color: #1F3864; margin-bottom: 14px; border-left: 4px solid #C8102E; padding-left: 10px; }
-  .form-row { display: flex; flex-wrap: wrap; gap: 16px; }
-  .form-group { flex: 1; min-width: 180px; }
-  label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #333; }
+  h2 { font-size: 16px; color: var(--primary); margin-bottom: 14px; border-left: 4px solid var(--accent); padding-left: 10px; display: flex; align-items: center; gap: 8px; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #334155; }
   input[type="number"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #c4cbd6;
-    border-radius: 6px;
-    font-size: 16px;
-    font-family: inherit;
+    width: 100%; padding: 11px 12px; border: 1px solid #cfd8e3; border-radius: 10px; font-size: 16px; font-family: inherit; background: #fbfcfe;
+    transition: border-color .2s, box-shadow .2s;
   }
-  input[type="number"]:focus { outline: 2px solid #1F3864; border-color: transparent; }
-  .hint { font-size: 12px; color: #7a8494; margin-top: 4px; }
-  .btn-row { margin-top: 18px; display: flex; gap: 12px; }
+  input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(46,117,182,0.14); }
+  input.invalid { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .error-msg { min-height: 18px; font-size: 12px; color: #dc2626; margin-top: 4px; }
+
+  .btn-row { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
   button {
-    padding: 11px 28px;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    font-weight: bold;
+    padding: 10px 18px; border: none; border-radius: 10px; font-size: 14px; font-family: inherit; cursor: pointer; font-weight: 700;
+    transition: transform .05s ease, background .2s ease, box-shadow .2s ease;
   }
-  #calcBtn { background: #C8102E; color: #fff; }
-  #calcBtn:hover { background: #a80d26; }
-  #resetBtn { background: #e3e7ee; color: #333; }
-  #resetBtn:hover { background: #d2d8e2; }
-  .result {
-    display: none;
-    margin-top: 20px;
-    border-radius: 8px;
-    padding: 18px;
-    border: 2px solid;
-  }
-  .result .big { font-size: 34px; font-weight: bold; }
-  .result .label { font-size: 13px; color: #555; margin-top: 2px; }
-  .result .row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; }
-  .result .row span:first-child { color: #666; }
-  .result .row span:last-child { font-weight: bold; }
-  .grade { margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
-  .warning { background: #fff4e5; border: 1px solid #f0c36d; color: #7a5b00; padding: 12px; border-radius: 6px; font-size: 13px; margin-top: 18px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-  th, td { border: 1px solid #d9dee7; padding: 7px 9px; text-align: left; }
-  th { background: #eef2f9; color: #1F3864; }
+  button:active { transform: translateY(1px); }
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(31,78,121,0.2); }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: #e8eef6; color: #334155; }
+  .btn-secondary:hover { background: #dde7f2; }
+  .btn-ghost { background: #f4f7fb; color: var(--primary); border: 1px solid #d7e2ef; }
+  .btn-ghost:hover { background: #eaf1f9; }
+  .btn-sm { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
+
+  .result-wrap { display: none; }
+  .result-top { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: center; }
+  @media (min-width: 700px) { .result-top { grid-template-columns: 250px 1fr; } }
+  .gauge-box { background: linear-gradient(180deg,#f8fbff 0%,#f3f8fd 100%); border: 1px solid #dfe8f2; border-radius: 12px; padding: 10px; text-align: center; }
+  .big { font-size: 40px; font-weight: 800; line-height: 1.05; margin-top: 2px; letter-spacing: -0.5px; }
+  .sub { font-size: 13px; color: #5b6472; }
+  .grade { margin-top: 10px; padding: 7px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; display: inline-block; }
+  .interpret { margin-top: 10px; font-size: 12.5px; color: #475569; background: #f8fafc; border: 1px dashed #d8e1ec; border-radius: 8px; padding: 8px 10px; text-align: left; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 8px; }
+  .metric { background: #f8fafc; border: 1px solid #e3eaf3; border-radius: 10px; padding: 10px 12px; }
+  .metric .k { font-size: 12px; color: var(--muted); }
+  .metric .v { font-size: 16px; font-weight: 700; color: #1f2937; margin-top: 2px; }
+
+  .chart-title { font-size: 13.5px; font-weight: 700; color: #334155; margin-bottom: 8px; }
+  .chart-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .bar-row { margin: 10px 0; }
+  .bar-label { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: #334155; margin-bottom: 4px; }
+  .bar-track { height: 12px; background: #e9eef5; border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; width: 0%; transition: width 0.7s cubic-bezier(.2,.7,.2,1); }
+
+  .risk-scale { margin-top: 12px; }
+  .scale-bar { position: relative; height: 14px; border-radius: 999px; background: linear-gradient(90deg,#2e7d32 0%,#2e7d32 30%,#c9a227 30%,#c9a227 50%,#d97706 50%,#d97706 70%,#c62828 70%,#c62828 100%); }
+  .scale-marker { position: absolute; top: -4px; width: 3px; height: 22px; background: #111827; border-radius: 2px; left: 0%; transition: left 0.7s cubic-bezier(.2,.7,.2,1); }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; gap: 4px; }
+
+  .auc-wrap svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #475569; margin-top: 8px; }
+  .lg { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 14px; height: 8px; border-radius: 3px; display: inline-block; }
+  .ci-mark { width: 14px; height: 2px; background: #334155; display: inline-block; position: relative; }
+  .ci-mark::before,.ci-mark::after { content: ""; position: absolute; top: -3px; width: 2px; height: 8px; background: #334155; }
+  .ci-mark::before { left: 0; } .ci-mark::after { right: 0; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; min-width: 520px; }
+  th, td { border: 1px solid #dde5ef; padding: 8px 9px; text-align: left; }
+  th { background: #f1f5fb; color: var(--primary); white-space: nowrap; }
   td { text-align: center; }
-  td:first-child { text-align: left; font-weight: bold; }
-  .footer { font-size: 12px; color: #7a8494; margin-top: 24px; text-align: center; }
-  .note { font-size: 12.5px; color: #4a5568; margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 6px; }
-  code { background: #eef2f9; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
-  .ranges { display: flex; justify-content: space-between; font-size: 12.5px; margin-top: 8px; color: #555; }
-  input:invalid { border-color: #e11d48; }
+  td:first-child { text-align: left; font-weight: 700; white-space: nowrap; }
+  .note { font-size: 12.5px; color: #475569; margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 10px; }
+  .warning { background: #fff8e8; border: 1px solid #f1d28a; color: #7a5b00; padding: 12px 14px; border-radius: 12px; font-size: 13px; margin-top: 16px; }
+  .footer { font-size: 12px; color: #6b7280; margin-top: 22px; text-align: center; }
+
+  details.panel { border: 1px solid var(--border); border-radius: 14px; background: #fff; box-shadow: 0 2px 12px rgba(31,78,121,0.06); overflow: hidden; }
+  details.panel + details.panel { margin-top: 16px; }
+  details.panel summary {
+    list-style: none; cursor: pointer; padding: 16px 20px; font-size: 16px; font-weight: 700; color: var(--primary);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff;
+  }
+  details.panel summary::-webkit-details-marker { display: none; }
+  details.panel summary .sum-left { display: flex; align-items: center; gap: 10px; }
+  details.panel summary .badge { font-size: 12px; font-weight: 600; color: #475569; background: #eef4fb; border: 1px solid #dbe6f2; padding: 2px 8px; border-radius: 999px; }
+  details.panel summary .chev { transition: transform .2s ease; color: #64748b; font-size: 14px; }
+  details.panel[open] summary .chev { transform: rotate(180deg); }
+  details.panel .panel-body { padding: 0 20px 20px; border-top: 1px solid #edf2f8; }
+  .copy-msg { font-size: 12px; color: var(--ok); margin-left: 4px; min-height: 18px; display: inline-block; }
+
+  @media (max-width: 640px) {
+    .container { padding: 14px 10px 28px; }
+    header { padding: 18px 16px; border-radius: 14px; }
+    header h1 { font-size: 19px; }
+    .header-top { gap: 10px; }
+    .logo { width: 38px; height: 38px; border-radius: 10px; }
+    .card, details.panel summary, details.panel .panel-body { padding-left: 14px; padding-right: 14px; }
+    .btn-row button { flex: 1 1 auto; }
+    .big { font-size: 34px; }
+    table { font-size: 12px; min-width: 480px; }
+  }
+  @media print {
+    body { background: #fff; }
+    .btn-row, .copy-actions { display: none !important; }
+    .card, details.panel, header { box-shadow: none; }
+    details.panel { break-inside: avoid; }
+    details.panel:not([open]) .panel-body { display: block; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>SOFA 2.0 脓毒症院内死亡风险预测计算器</h1>
-    <p>单中心外部验证 + 本地更新模型 · 研究版 v4规则-当前数据（2026-11-18）</p>
+    <div class="header-top">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V5"/><path d="M4 19h16"/><path d="M7 15l3-3 3 2 4-5"/><circle cx="17" cy="9" r="1.2" fill="#fff" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <h1>SOFA 2.0 脓毒症院内死亡风险预测计算器</h1>
+        <p>单中心本地更新模型（探索性研究工具）· 研究版 · 2026-11-18</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="pill">模型：SOFA 2.0 + 乳酸 + 年龄</span>
+      <span class="pill">队列：n=253，死亡 172（68.0%）</span>
+      <span class="pill">AUC 0.731（探索性）</span>
+    </div>
   </header>
 
-  <div class="card">
-    <h2>输入指标</h2>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="sofa2">SOFA 2.0 评分（重算）</label>
-        <input type="number" id="sofa2" min="0" max="24" step="1" placeholder="0–24 分" required>
-        <div class="hint">六个子系统得分之和，范围 0–24 分</div>
+  <div class="grid two">
+    <div class="card">
+      <h2>输入指标</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sofa2">SOFA 2.0 评分（按规则重算）</label>
+          <input type="number" id="sofa2" min="0" max="24" step="1" placeholder="0–24 分" inputmode="numeric">
+          <div class="hint">六个子系统得分之和，范围 0–24 分</div>
+          <div class="error-msg" id="err_sofa2"></div>
+        </div>
+        <div class="form-group">
+          <label for="lactate">乳酸（mmol/L）</label>
+          <input type="number" id="lactate" min="0" max="30" step="0.1" placeholder="如 5.8" inputmode="decimal">
+          <div class="hint">血乳酸浓度，mmol/L</div>
+          <div class="error-msg" id="err_lactate"></div>
+        </div>
+        <div class="form-group">
+          <label for="age">年龄（岁）</label>
+          <input type="number" id="age" min="14" max="120" step="1" placeholder="如 63" inputmode="numeric">
+          <div class="hint">患者年龄，岁</div>
+          <div class="error-msg" id="err_age"></div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="lactate">乳酸（mmol/L）</label>
-        <input type="number" id="lactate" min="0" max="30" step="0.1" placeholder="如 5.8" required>
-        <div class="hint">血乳酸浓度，mmol/L</div>
+      <div class="btn-row">
+        <button id="calcBtn" type="button" class="btn-primary">计算并生成可视化</button>
+        <button id="exampleBtn" type="button" class="btn-ghost">填入示例</button>
+        <button id="resetBtn" type="button" class="btn-secondary">清空</button>
       </div>
-      <div class="form-group">
-        <label for="age">年龄（岁）</label>
-        <input type="number" id="age" min="14" max="120" step="1" placeholder="如 63" required>
-        <div class="hint">患者年龄，岁</div>
-      </div>
+      <div class="note" style="margin-top:14px;">提示：可按 Enter 快速计算。示例值仅用于演示界面与计算流程，不代表真实病例。</div>
     </div>
-    <div class="btn-row">
-      <button id="calcBtn" type="button">计算死亡风险</button>
-      <button id="resetBtn" type="button">清空</button>
+
+    <div class="card">
+      <h2>模型判别力对比（研究结果）</h2>
+      <div class="auc-wrap">
+        <svg viewBox="0 0 430 185" role="img" aria-label="AUC comparison chart with 95% CI">
+          <rect x="0" y="0" width="430" height="185" fill="#ffffff"/>
+          <text x="10" y="22" font-size="12" fill="#64748b">AUC（院内死亡预测，n=253）</text>
+          <!-- grid and axis (scale 0.50-0.80 => 150..400) -->
+          <line x1="150" y1="40" x2="400" y2="40" stroke="#e9eef5"/>
+          <line x1="150" y1="72" x2="400" y2="72" stroke="#e9eef5"/>
+          <line x1="150" y1="104" x2="400" y2="104" stroke="#e9eef5"/>
+          <line x1="150" y1="136" x2="400" y2="136" stroke="#e9eef5"/>
+          <line x1="150" y1="38" x2="150" y2="142" stroke="#cfd8e3"/>
+
+          <!-- SOFA 1.0: AUC 0.646, 95%CI 0.572-0.719 -->
+          <text x="10" y="58" font-size="13" fill="#334155">SOFA 1.0</text>
+          <rect x="150" y="48" width="122" height="16" rx="4" fill="#7fa6c7"/>
+          <line x1="210" y1="56" x2="332.5" y2="56" stroke="#334155" stroke-width="2"/>
+          <line x1="210" y1="51" x2="210" y2="61" stroke="#334155" stroke-width="2"/>
+          <line x1="332.5" y1="51" x2="332.5" y2="61" stroke="#334155" stroke-width="2"/>
+          <text x="338" y="60" font-size="12" fill="#334155">0.646</text>
+
+          <!-- SOFA 2.0 重算: AUC 0.691, 95%CI 0.619-0.762 -->
+          <text x="10" y="90" font-size="13" fill="#334155">SOFA 2.0（重算）</text>
+          <rect x="150" y="80" width="159" height="16" rx="4" fill="#2e75b6"/>
+          <line x1="249" y1="88" x2="368" y2="88" stroke="#334155" stroke-width="2"/>
+          <line x1="249" y1="83" x2="249" y2="93" stroke="#334155" stroke-width="2"/>
+          <line x1="368" y1="83" x2="368" y2="93" stroke="#334155" stroke-width="2"/>
+          <text x="374" y="92" font-size="12" fill="#334155">0.691</text>
+
+          <!-- Model C: AUC 0.731, CI 未报告 -->
+          <text x="10" y="122" font-size="13" fill="#334155">模型 C（+乳酸+年龄）</text>
+          <rect x="150" y="112" width="193" height="16" rx="4" fill="#1f4e79"/>
+          <text x="349" y="124" font-size="12" fill="#334155">0.731</text>
+
+          <text x="150" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.50</text>
+          <text x="233" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.60</text>
+          <text x="317" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.70</text>
+          <text x="400" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.80</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <span class="lg"><span class="swatch" style="background:#2e75b6"></span>AUC</span>
+        <span class="lg"><span class="ci-mark"></span>已报告 95% CI（SOFA 1.0：0.572–0.719；SOFA 2.0：0.619–0.762）</span>
+      </div>
+      <div class="chart-note">注：模型 C 为探索性联合模型（乳酸增量边缘显著，年龄未显示独立增益），未报告 95% CI，且未外部验证。</div>
     </div>
   </div>
 
-  <div class="result" id="result">
-    <div class="label">预测院内死亡概率</div>
-    <div class="big" id="prob"></div>
-    <div class="grade" id="gradeBox"></div>
-    <div class="row"><span>SOFA 2.0 评分</span><span id="r_sofa2"></span></div>
-    <div class="row"><span>乳酸</span><span id="r_lac"></span></div>
-    <div class="row"><span>年龄</span><span id="r_age"></span></div>
-    <div class="row"><span>线性预测值 logit</span><span id="r_logit"></span></div>
-    <div class="row"><span>模型判别力 AUC</span><span>0.731（Model C：SOFA2重算+年龄+乳酸）</span></div>
-  </div>
+  <div class="result-wrap" id="resultWrap">
+    <div class="grid two" style="margin-top:16px;">
+      <div class="card">
+        <h2>预测结果与风险仪表
+          <span class="copy-actions" style="margin-left:auto; display:flex; align-items:center; gap:8px; border-left:none; padding-left:0;">
+            <button id="copyBtn" type="button" class="btn-ghost btn-sm">复制结果摘要</button>
+            <span class="copy-msg" id="copyMsg"></span>
+          </span>
+        </h2>
+        <div class="result-top">
+          <div class="gauge-box">
+            <svg viewBox="0 0 220 140" width="220" height="140" aria-label="Risk gauge">
+              <path d="M20 110 A90 90 0 0 1 200 110" fill="none" stroke="#e6edf5" stroke-width="16" stroke-linecap="round"/>
+              <path id="gaugeArc" d="M20 110 A90 90 0 0 1 200 110" fill="none" stroke="#2e75b6" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 283" style="transition: stroke-dasharray .7s cubic-bezier(.2,.7,.2,1), stroke .3s ease;"/>
+              <g id="gaugeNeedleGroup" style="transform-origin:110px 110px; transition: transform .7s cubic-bezier(.2,.7,.2,1); transform: rotate(-90deg);">
+                <line x1="110" y1="110" x2="110" y2="35" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+              </g>
+              <circle cx="110" cy="110" r="6" fill="#1f2937"/>
+              <text x="20" y="128" font-size="11" fill="#64748b">0%</text>
+              <text x="185" y="128" font-size="11" fill="#64748b">100%</text>
+            </svg>
+            <div class="sub">预测院内死亡概率</div>
+            <div class="big" id="prob">--</div>
+            <div class="grade" id="gradeBox">--</div>
+            <div class="interpret" id="interpretBox">请输入指标并点击计算，查看风险分层与解读提示。</div>
+          </div>
+          <div>
+            <div class="metrics">
+              <div class="metric"><div class="k">SOFA 2.0（重算）</div><div class="v" id="r_sofa2">--</div></div>
+              <div class="metric"><div class="k">乳酸</div><div class="v" id="r_lac">--</div></div>
+              <div class="metric"><div class="k">年龄</div><div class="v" id="r_age">--</div></div>
+              <div class="metric"><div class="k">线性预测值 logit</div><div class="v" id="r_logit">--</div></div>
+            </div>
+            <div class="risk-scale">
+              <div class="chart-title" style="margin-top:12px;">风险分层标尺</div>
+              <div class="scale-bar"><div class="scale-marker" id="scaleMarker"></div></div>
+              <div class="scale-labels"><span>低 (&lt;30%)</span><span>中 (30–50%)</span><span>高 (50–70%)</span><span>极高 (≥70%)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>SOFA 2.0 六子系统评分速查（0–4 分）</h2>
-    <table>
-      <tr><th>子系统</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
-      <tr><td>神经</td><td>GCS 15</td><td>13–14</td><td>9–12</td><td>6–8</td><td>3–5</td></tr>
-      <tr><td>呼吸</td><td>比值 &gt;300</td><td>&gt;225</td><td>&gt;150</td><td>75–150 且呼吸支持*</td><td>≤75 且呼吸支持*</td></tr>
-      <tr><td>循环</td><td>MAP≥70 且无血管活性药</td><td>MAP&lt;70</td><td>NE≤0.2 或其他血管活性药</td><td>NE&gt;0.2 或其他联合</td><td>NE&gt;0.4 或 MCS**</td></tr>
-      <tr><td>肝脏</td><td>胆红素 ≤1.2</td><td>≤3.0</td><td>≤6.0</td><td>≤12</td><td>&gt;12 mg/dL</td></tr>
-      <tr><td>肾脏</td><td>肌酐 ≤1.2</td><td>≤2.0</td><td>≤3.5</td><td>&gt;3.5 mg/dL</td><td>RRT 中</td></tr>
-      <tr><td>凝血</td><td>血小板 &gt;150</td><td>&gt;100</td><td>&gt;80</td><td>&gt;50</td><td>≤50 ×10⁹/L</td></tr>
-    </table>
-    <div class="note">* 呼吸支持指高流量/无创/有创通气，或 PaO₂/FiO₂≤150 时按 SpO₂/FiO₂ 替代规则。<br>** NE 单位为 μg/kg/min；MCS＝机械循环支持（ECMO 等）。胆红素、肌酐阈值见 mg/dL。</div>
-  </div>
-
-  <div class="card">
-    <h2>模型与方法</h2>
-    <p style="font-size:14px; margin-top:6px;">
-      本计算器基于<b>单中心脓毒症队列（n=253，死亡 172 例，68.0%）</b>的本地更新模型：
-    </p>
-    <div class="note">
-      logit(P) = -1.4848 + 0.1105 × SOFA 2.0（重算） + 0.0043 × 年龄 + 0.1360 × 乳酸<br>
-      P = 1 / (1 + e<sup>−logit</sup>)
+      <div class="card chart-card">
+        <h2>变量项贡献可视化（logit）</h2>
+        <div class="chart-title">各预测变量项：系数 × 输入值</div>
+        <div class="bar-row">
+          <div class="bar-label"><span>SOFA 2.0 项（0.1105 × 分值）</span><span id="c_sofa2_val">--</span></div>
+          <div class="bar-track"><div class="bar-fill" id="c_sofa2_bar" style="background:#2e75b6;"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>乳酸项（0.1360 × mmol/L）</span><span id="c_lac_val">--</span></div>
+          <div class="bar-track"><div class="bar-fill" id="c_lac_bar" style="background:#1f4e79;"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>年龄项（0.0043 × 岁）</span><span id="c_age_val">--</span></div>
+          <div class="bar-track"><div class="bar-fill" id="c_age_bar" style="background:#7fa6c7;"></div></div>
+        </div>
+        <div class="note" style="margin-top:10px;">模型截距为 -1.4848。上图展示各变量项对线性预测值（logit）的加性贡献，用于解释输入因素的相对驱动；不等同于因果效应。</div>
+      </div>
     </div>
-    <table style="margin-top:12px;">
-      <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR</th></tr>
-      <tr><td>截距</td><td>-1.4848</td><td>0.7908</td><td>0.060</td><td>0.227</td></tr>
-      <tr><td>SOFA 2.0（重算）</td><td>0.1105</td><td>0.0367</td><td>0.003</td><td>1.117</td></tr>
-      <tr><td>乳酸（mmol/L）</td><td>0.1360</td><td>0.0410</td><td>0.001</td><td>1.146</td></tr>
-      <tr><td>年龄（岁）</td><td>0.0043</td><td>0.0100</td><td>0.662</td><td>1.004</td></tr>
-    </table>
-    <p style="font-size:13px; margin-top:10px; color:#4a5568;">
-      判别力 AUC 0.731（Model C：SOFA2重算+年龄+乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95%CI 0.619–0.762），SOFA-1 AUC 0.646（95%CI 0.572–0.719）。Hosmer-Lemeshow 校准：SOFA2 p=0.320，Model C p=0.758。
-    </p>
   </div>
+
+  <details class="panel" id="panelQuickRef">
+    <summary>
+      <span class="sum-left"><span>SOFA 2.0 六子系统评分速查（0–4 分）</span><span class="badge">参考表</span></span>
+      <span class="chev">▼</span>
+    </summary>
+    <div class="panel-body">
+      <div class="table-wrap">
+        <table>
+          <tr><th>子系统</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+          <tr><td>神经</td><td>GCS 15</td><td>13–14</td><td>9–12</td><td>6–8</td><td>3–5</td></tr>
+          <tr><td>呼吸</td><td>比值 &gt;300</td><td>&gt;225</td><td>&gt;150</td><td>75–150 且呼吸支持*</td><td>≤75 且呼吸支持*</td></tr>
+          <tr><td>循环</td><td>MAP≥70 且无血管活性药</td><td>MAP&lt;70</td><td>NE≤0.2 或其他血管活性药</td><td>NE&gt;0.2 或其他联合</td><td>NE&gt;0.4 或 MCS**</td></tr>
+          <tr><td>肝脏</td><td>胆红素 ≤1.2</td><td>≤3.0</td><td>≤6.0</td><td>≤12</td><td>&gt;12 mg/dL</td></tr>
+          <tr><td>肾脏</td><td>肌酐 ≤1.2</td><td>≤2.0</td><td>≤3.5</td><td>&gt;3.5 mg/dL</td><td>RRT 中</td></tr>
+          <tr><td>凝血</td><td>血小板 &gt;150</td><td>&gt;100</td><td>&gt;80</td><td>&gt;50</td><td>≤50 ×10⁹/L</td></tr>
+        </table>
+      </div>
+      <div class="note">* 呼吸支持指高流量/无创/有创通气，或 PaO₂/FiO₂≤150 时按 SpO₂/FiO₂ 替代规则。<br>** NE 单位为 μg/kg/min；MCS＝机械循环支持（ECMO 等）。胆红素、肌酐阈值见 mg/dL。</div>
+    </div>
+  </details>
+
+  <details class="panel" id="panelMethods">
+    <summary>
+      <span class="sum-left"><span>模型与方法</span><span class="badge">探索性模型</span></span>
+      <span class="chev">▼</span>
+    </summary>
+    <div class="panel-body">
+      <p style="font-size:14px; margin-top:12px;">本计算器基于<b>单中心脓毒症队列（n=253，死亡 172 例，68.0%）</b>构建的本地更新（探索性）模型：</p>
+      <div class="note">logit(P) = -1.4848 + 0.1105 × SOFA 2.0（按规则重算） + 0.0043 × 年龄 + 0.1360 × 乳酸<br>P = 1 / (1 + e<sup>−logit</sup>)</div>
+      <div class="table-wrap">
+        <table style="margin-top:12px;">
+          <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR</th></tr>
+          <tr><td>截距</td><td>-1.4848</td><td>0.7908</td><td>0.060</td><td>0.227</td></tr>
+          <tr><td>SOFA 2.0（按规则重算）</td><td>0.1105</td><td>0.0367</td><td>0.003</td><td>1.117</td></tr>
+          <tr><td>乳酸（mmol/L）</td><td>0.1360</td><td>0.0410</td><td>0.001</td><td>1.146</td></tr>
+          <tr><td>年龄（岁）</td><td>0.0043</td><td>0.0100</td><td>0.662</td><td>1.004</td></tr>
+        </table>
+      </div>
+      <p style="font-size:13px; margin-top:10px; color:#475569;">判别力 AUC 0.731（模型 C：SOFA 2.0 重算 + 年龄 + 乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95% CI 0.619–0.762），SOFA 1.0 AUC 0.646（95% CI 0.572–0.719）。Hosmer–Lemeshow 校准：SOFA 2.0 p=0.320，模型 C p=0.758。</p>
+    </div>
+  </details>
 
   <div class="warning">
-    <b>⚠️ 使用声明</b>：本计算器为<b>科研与论文辅助工具</b>，基于按 v4 规则重算/筛选的当前数据集（n=253）构建的本地更新模型，<b>尚未经多中心前瞻性外部验证</b>。结果仅供研究参考，<b>不得作为独立临床决策、诊疗或分诊依据</b>。临床使用需经当地伦理与临床决策审批。
+    <b>⚠️ 使用声明</b>：本计算器为<b>科研与教学展示工具</b>，基于当前研究队列数据（n=253）构建的本地更新模型，乳酸增量处于边缘显著、年龄未显示独立增益，且<b>尚未经多中心前瞻性外部验证</b>。结果仅供研究参考，<b>不构成医疗建议，不得作为独立临床决策、诊疗或分诊依据</b>。临床使用需结合专业判断并遵循相关规范与伦理要求。
   </div>
 
   <div class="footer">
     SOFA 2.0 官方评分来源：Ranzani OT, et al. JAMA. 2025;334(23):2090<br>
-    数据来源：当前收集数据（开题, (恢复的).xlsx），按 v4 流程重算/分析 · 更新日期 2026-11-18
+    数据来源：当前研究数据（按规则重算/分析） · 更新日期 2026-11-18
   </div>
 </div>
 
 <script>
-  function fmtP(p) {
-    if (p <= 0) return "0.0%";
-    if (p >= 1) return "100.0%";
-    return (p * 100).toFixed(1) + "%";
+  var lastResult = null;
+  var probAnim = null;
+
+  function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+  function fmtP(p) { if (p <= 0) return "0.0%"; if (p >= 1) return "100.0%"; return (p * 100).toFixed(1) + "%"; }
+
+  function setError(id, msg) {
+    var input = document.getElementById(id);
+    var err = document.getElementById('err_' + id);
+    if (msg) { input.classList.add('invalid'); err.textContent = msg; }
+    else { input.classList.remove('invalid'); err.textContent = ''; }
   }
-  function calc() {
-    var sofa2 = parseFloat(document.getElementById('sofa2').value);
-    var lac = parseFloat(document.getElementById('lactate').value);
-    var age = parseFloat(document.getElementById('age').value);
-    if (isNaN(sofa2) || isNaN(lac) || isNaN(age)) {
-      alert("请完整填写三项输入指标。");
-      return;
+
+  function clearErrors() { ['sofa2','lactate','age'].forEach(function(id){ setError(id,''); }); }
+
+  function validate(show) {
+    var sofa2v = document.getElementById('sofa2').value.trim();
+    var lacv = document.getElementById('lactate').value.trim();
+    var agev = document.getElementById('age').value.trim();
+    var sofa2 = parseFloat(sofa2v), lac = parseFloat(lacv), age = parseFloat(agev);
+    var ok = true;
+
+    if (sofa2v === '' || isNaN(sofa2)) { if (show) setError('sofa2','请输入 SOFA 2.0 评分'); ok = false; }
+    else if (sofa2 < 0 || sofa2 > 24) { if (show) setError('sofa2','SOFA 2.0 评分应在 0–24 分之间'); ok = false; }
+    else if (show) setError('sofa2','');
+
+    if (lacv === '' || isNaN(lac)) { if (show) setError('lactate','请输入乳酸数值（mmol/L）'); ok = false; }
+    else if (lac < 0 || lac > 30) { if (show) setError('lactate','乳酸建议范围 0–30 mmol/L'); ok = false; }
+    else if (show) setError('lactate','');
+
+    if (agev === '' || isNaN(age)) { if (show) setError('age','请输入年龄（岁）'); ok = false; }
+    else if (age < 14 || age > 120) { if (show) setError('age','年龄应在 14–120 岁之间'); ok = false; }
+    else if (show) setError('age','');
+
+    return { ok: ok, sofa2: sofa2, lac: lac, age: age };
+  }
+
+  function gradeInfo(p) {
+    if (p < 0.3) return { text: '低风险', color: '#2e7d32', bg: '#e8f5e9', tip: '模型预测死亡概率较低（<30%），但仍需结合临床表现与动态评估，结果仅供研究参考。' };
+    if (p < 0.5) return { text: '中风险', color: '#b45309', bg: '#fff8e1', tip: '模型预测为中等风险（30–50%），建议结合器官功能、感染控制与治疗反应综合判断。' };
+    if (p < 0.7) return { text: '高风险', color: '#d97706', bg: '#fff1e6', tip: '模型预测为高风险（50–70%），提示不良结局风险升高，需结合临床严密评估与干预策略。' };
+    return { text: '极高风险', color: '#c62828', bg: '#fde8e8', tip: '模型预测为极高风险（≥70%），提示病情危重风险较高；请务必结合临床全面评估，本结果不作为独立决策依据。' };
+  }
+
+  function animateProbability(targetP) {
+    if (probAnim) cancelAnimationFrame(probAnim);
+    var el = document.getElementById('prob');
+    var startText = el.textContent || '0.0%';
+    var start = parseFloat(startText);
+    if (isNaN(start)) start = 0;
+    var from = start / 100;
+    var to = targetP;
+    var t0 = null, dur = 700;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - k, 3);
+      var v = from + (to - from) * e;
+      el.textContent = fmtP(v);
+      if (k < 1) probAnim = requestAnimationFrame(step);
     }
-    if (sofa2 < 0 || sofa2 > 24) { alert("SOFA 2.0 评分应在 0–24 分之间。"); return; }
+    probAnim = requestAnimationFrame(step);
+  }
+
+  function updateGauge(p) {
+    var arcLen = Math.PI * 90;
+    var dash = clamp(p, 0, 1) * arcLen;
+    var arc = document.getElementById('gaugeArc');
+    arc.setAttribute('stroke-dasharray', dash.toFixed(2) + ' ' + arcLen.toFixed(2));
+    var angle = -90 + clamp(p,0,1) * 180;
+    document.getElementById('gaugeNeedleGroup').style.transform = 'rotate(' + angle.toFixed(1) + 'deg)';
+    var g = gradeInfo(p);
+    arc.setAttribute('stroke', g.color);
+  }
+
+  function updateContrib(sofa2, lac, age) {
+    var cS = 0.1105 * sofa2;
+    var cL = 0.1360 * lac;
+    var cA = 0.0043 * age;
+    var maxRef = Math.max(2.7, cS, cL, cA, 0.1);
+    function setBar(idVal, idBar, val) {
+      document.getElementById(idVal).textContent = (val >= 0 ? '+' : '') + val.toFixed(3);
+      var w = clamp((val / maxRef) * 100, 0, 100);
+      document.getElementById(idBar).style.width = w.toFixed(1) + '%';
+    }
+    setBar('c_sofa2_val','c_sofa2_bar', cS);
+    setBar('c_lac_val','c_lac_bar', cL);
+    setBar('c_age_val','c_age_bar', cA);
+  }
+
+  function calc() {
+    clearErrors();
+    var v = validate(true);
+    if (!v.ok) return;
+
+    var sofa2 = v.sofa2, lac = v.lac, age = v.age;
     var logit = -1.4848 + 0.1105 * sofa2 + 0.0043 * age + 0.1360 * lac;
     var p = 1 / (1 + Math.exp(-logit));
-    var pct = fmtP(p);
+    var g = gradeInfo(p);
 
-    var gradeText, gradeColor, gradeBg;
-    if (p < 0.3)      { gradeText = "低风险"; gradeColor = "#1a7f37"; gradeBg = "#e6f4ea"; }
-    else if (p < 0.5) { gradeText = "中风险"; gradeColor = "#9a6700"; gradeBg = "#fff8c5"; }
-    else if (p < 0.7) { gradeText = "高风险"; gradeColor = "#b35900"; gradeBg = "#ffe8cc"; }
-    else              { gradeText = "极高风险"; gradeColor = "#a80d26"; gradeBg = "#fde2e4"; }
-
-    document.getElementById('prob').textContent = pct;
-    var gb = document.getElementById('gradeBox');
-    gb.textContent = "风险分级：" + gradeText;
-    gb.style.color = gradeColor;
-    gb.style.background = gradeBg;
-
-    document.getElementById('r_sofa2').textContent = sofa2 + " 分";
-    document.getElementById('r_lac').textContent = lac.toFixed(1) + " mmol/L";
-    document.getElementById('r_age').textContent = age + " 岁";
+    document.getElementById('r_sofa2').textContent = sofa2 + ' 分';
+    document.getElementById('r_lac').textContent = lac.toFixed(1) + ' mmol/L';
+    document.getElementById('r_age').textContent = age + ' 岁';
     document.getElementById('r_logit').textContent = logit.toFixed(4);
 
-    document.getElementById('result').style.display = 'block';
-    document.getElementById('result').style.borderColor = gradeColor;
+    var gb = document.getElementById('gradeBox');
+    gb.textContent = '风险分级：' + g.text;
+    gb.style.color = g.color;
+    gb.style.background = g.bg;
+    document.getElementById('interpretBox').textContent = g.tip;
+
+    animateProbability(p);
+    updateGauge(p);
+    updateContrib(sofa2, lac, age);
+    document.getElementById('scaleMarker').style.left = 'calc(' + (clamp(p,0,1)*100).toFixed(1) + '% - 1.5px)';
+    document.getElementById('resultWrap').style.display = 'block';
+    document.getElementById('copyMsg').textContent = '';
+
+    lastResult = { sofa2: sofa2, lac: lac, age: age, logit: logit, p: p, grade: g.text };
   }
+
+  function fillExample() {
+    document.getElementById('sofa2').value = 12;
+    document.getElementById('lactate').value = 4.2;
+    document.getElementById('age').value = 68;
+    clearErrors();
+    calc();
+  }
+
   function reset() {
     ['sofa2','lactate','age'].forEach(function(id){ document.getElementById(id).value=''; });
-    document.getElementById('result').style.display = 'none';
+    clearErrors();
+    document.getElementById('resultWrap').style.display = 'none';
+    document.getElementById('copyMsg').textContent = '';
+    lastResult = null;
+    if (probAnim) cancelAnimationFrame(probAnim);
   }
-  document.getElementById('calcBtn').addEventListener('click', calc);
-  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  async function copySummary() {
+    var msg = document.getElementById('copyMsg');
+    if (!lastResult) { msg.textContent = '请先计算'; msg.style.color = '#b45309'; return; }
+    var text = [
+      '【SOFA 2.0 风险计算结果（探索性模型）】',
+      '预测院内死亡概率：' + fmtP(lastResult.p),
+      '风险分级：' + lastResult.grade,
+      'SOFA 2.0（按规则重算）：' + lastResult.sofa2 + ' 分',
+      '乳酸：' + lastResult.lac.toFixed(1) + ' mmol/L',
+      '年龄：' + lastResult.age + ' 岁',
+      'logit：' + lastResult.logit.toFixed(4),
+      '模型：SOFA 2.0 + 乳酸 + 年龄（AUC 0.731，探索性，未外部验证）',
+      '说明：仅供科研/教学展示，不构成医疗建议。'
+    ].join('\n');
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      msg.textContent = '已复制';
+      msg.style.color = '#2e7d32';
+    } catch (e) {
+      msg.textContent = '复制失败，请手动复制';
+      msg.style.color = '#c62828';
+    }
+    setTimeout(function(){ msg.textContent = ''; }, 2500);
+  }
+
   ['sofa2','lactate','age'].forEach(function(id){
-    document.getElementById(id).addEventListener('keydown', function(e){ if(e.key==='Enter') calc(); });
+    var el = document.getElementById(id);
+    el.addEventListener('keydown', function(e){ if(e.key==='Enter') calc(); });
+    el.addEventListener('input', function(){ setError(id,''); });
   });
+  document.getElementById('calcBtn').addEventListener('click', calc);
+  document.getElementById('exampleBtn').addEventListener('click', fillExample);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.getElementById('copyBtn').addEventListener('click', copySummary);
 </script>
 </body>
 </html>
