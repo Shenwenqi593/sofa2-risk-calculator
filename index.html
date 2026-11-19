@@ -179,7 +179,7 @@
       </div>
     </div>
     <div class="header-meta">
-      <span class="pill">模型：SOFA 2.0 + 乳酸 + 年龄</span>
+      <span class="pill">模型：SOFA 2.0 + 乳酸</span>
       <span class="pill">队列：n=253，死亡 172（68.0%）</span>
       <span class="pill">AUC 0.731（探索性）</span>
     </div>
@@ -201,12 +201,6 @@
           <div class="hint">血乳酸浓度，mmol/L</div>
           <div class="error-msg" id="err_lactate"></div>
         </div>
-        <div class="form-group">
-          <label for="age">年龄（岁）</label>
-          <input type="number" id="age" min="14" max="120" step="1" placeholder="如 63" inputmode="numeric">
-          <div class="hint">患者年龄，岁</div>
-          <div class="error-msg" id="err_age"></div>
-        </div>
       </div>
       <div class="btn-row">
         <button id="calcBtn" type="button" class="btn-primary">计算并生成可视化</button>
@@ -219,8 +213,8 @@
     <div class="card">
       <h2>模型判别力对比（研究结果）</h2>
       <div class="auc-wrap">
-        <svg viewBox="0 0 430 185" role="img" aria-label="AUC comparison chart with 95% CI">
-          <rect x="0" y="0" width="430" height="185" fill="#ffffff"/>
+        <svg viewBox="0 0 450 185" role="img" aria-label="AUC comparison chart with 95% CI">
+          <rect x="0" y="0" width="450" height="185" fill="#ffffff"/>
           <text x="10" y="22" font-size="12" fill="#64748b">AUC（院内死亡预测，n=253）</text>
           <!-- grid and axis (scale 0.50-0.80 => 150..400) -->
           <line x1="150" y1="40" x2="400" y2="40" stroke="#e9eef5"/>
@@ -245,10 +239,13 @@
           <line x1="368" y1="83" x2="368" y2="93" stroke="#334155" stroke-width="2"/>
           <text x="374" y="92" font-size="12" fill="#334155">0.691</text>
 
-          <!-- Model C: AUC 0.731, CI 未报告 -->
-          <text x="10" y="122" font-size="13" fill="#334155">模型 C（+乳酸+年龄）</text>
+          <!-- Model B (main exploratory): AUC 0.731, 95%CI 0.666-0.796 -->
+          <text x="10" y="122" font-size="13" fill="#334155">模型 B（+乳酸）</text>
           <rect x="150" y="112" width="193" height="16" rx="4" fill="#1f4e79"/>
-          <text x="349" y="124" font-size="12" fill="#334155">0.731</text>
+          <line x1="288" y1="120" x2="397" y2="120" stroke="#ffffff" stroke-width="2"/>
+          <line x1="288" y1="115" x2="288" y2="125" stroke="#ffffff" stroke-width="2"/>
+          <line x1="397" y1="115" x2="397" y2="125" stroke="#ffffff" stroke-width="2"/>
+          <text x="403" y="124" font-size="12" fill="#334155">0.731</text>
 
           <text x="150" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.50</text>
           <text x="233" y="158" font-size="11" fill="#64748b" text-anchor="middle">0.60</text>
@@ -258,9 +255,9 @@
       </div>
       <div class="legend">
         <span class="lg"><span class="swatch" style="background:#2e75b6"></span>AUC</span>
-        <span class="lg"><span class="ci-mark"></span>已报告 95% CI（SOFA 1.0：0.572–0.719；SOFA 2.0：0.619–0.762）</span>
+        <span class="lg"><span class="ci-mark"></span>已报告 95% CI（SOFA 1.0：0.572–0.719；SOFA 2.0：0.619–0.762；模型 B：0.666–0.796）</span>
       </div>
-      <div class="chart-note">注：模型 C 为探索性联合模型（乳酸增量边缘显著，年龄未显示独立增益），未报告 95% CI，且未外部验证。</div>
+      <div class="chart-note">注：模型 B 为经 LASSO 与 Bootstrap 稳定性筛选得到的探索性最简模型（SOFA 2.0 + 乳酸），未外部验证。</div>
     </div>
   </div>
 
@@ -294,7 +291,6 @@
             <div class="metrics">
               <div class="metric"><div class="k">SOFA 2.0（重算）</div><div class="v" id="r_sofa2">--</div></div>
               <div class="metric"><div class="k">乳酸</div><div class="v" id="r_lac">--</div></div>
-              <div class="metric"><div class="k">年龄</div><div class="v" id="r_age">--</div></div>
               <div class="metric"><div class="k">线性预测值 logit</div><div class="v" id="r_logit">--</div></div>
             </div>
             <div class="risk-scale">
@@ -310,18 +306,14 @@
         <h2>变量项贡献可视化（logit）</h2>
         <div class="chart-title">各预测变量项：系数 × 输入值</div>
         <div class="bar-row">
-          <div class="bar-label"><span>SOFA 2.0 项（0.1105 × 分值）</span><span id="c_sofa2_val">--</span></div>
+          <div class="bar-label"><span>SOFA 2.0 项（0.1098 × 分值）</span><span id="c_sofa2_val">--</span></div>
           <div class="bar-track"><div class="bar-fill" id="c_sofa2_bar" style="background:#2e75b6;"></div></div>
         </div>
         <div class="bar-row">
-          <div class="bar-label"><span>乳酸项（0.1360 × mmol/L）</span><span id="c_lac_val">--</span></div>
+          <div class="bar-label"><span>乳酸项（0.1352 × mmol/L）</span><span id="c_lac_val">--</span></div>
           <div class="bar-track"><div class="bar-fill" id="c_lac_bar" style="background:#1f4e79;"></div></div>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>年龄项（0.0043 × 岁）</span><span id="c_age_val">--</span></div>
-          <div class="bar-track"><div class="bar-fill" id="c_age_bar" style="background:#7fa6c7;"></div></div>
-        </div>
-        <div class="note" style="margin-top:10px;">模型截距为 -1.4848。上图展示各变量项对线性预测值（logit）的加性贡献，用于解释输入因素的相对驱动；不等同于因果效应。</div>
+        <div class="note" style="margin-top:10px;">模型截距为 -1.1889。上图展示各变量项对线性预测值（logit）的加性贡献，用于解释输入因素的相对驱动；不等同于因果效应。</div>
       </div>
     </div>
   </div>
@@ -354,22 +346,22 @@
     </summary>
     <div class="panel-body">
       <p style="font-size:14px; margin-top:12px;">本计算器基于<b>单中心脓毒症队列（n=253，死亡 172 例，68.0%）</b>构建的本地更新（探索性）模型：</p>
-      <div class="note">logit(P) = -1.4848 + 0.1105 × SOFA 2.0（按规则重算） + 0.0043 × 年龄 + 0.1360 × 乳酸<br>P = 1 / (1 + e<sup>−logit</sup>)</div>
+      <div class="note">logit(P) = -1.1889 + 0.1098 × SOFA 2.0（按规则重算） + 0.1352 × 乳酸<br>P = 1 / (1 + e<sup>−logit</sup>)</div>
       <div class="table-wrap">
         <table style="margin-top:12px;">
-          <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR</th></tr>
-          <tr><td>截距</td><td>-1.4848</td><td>0.7908</td><td>0.060</td><td>0.227</td></tr>
-          <tr><td>SOFA 2.0（按规则重算）</td><td>0.1105</td><td>0.0367</td><td>0.003</td><td>1.117</td></tr>
-          <tr><td>乳酸（mmol/L）</td><td>0.1360</td><td>0.0410</td><td>0.001</td><td>1.146</td></tr>
-          <tr><td>年龄（岁）</td><td>0.0043</td><td>0.0100</td><td>0.662</td><td>1.004</td></tr>
+          <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR（95% CI）</th></tr>
+          <tr><td>截距</td><td>-1.1889</td><td>0.4048</td><td>0.003</td><td>0.305（0.138–0.673）</td></tr>
+          <tr><td>SOFA 2.0（按规则重算）</td><td>0.1098</td><td>0.0367</td><td>0.003</td><td>1.116（1.039–1.199）</td></tr>
+          <tr><td>乳酸（mmol/L）</td><td>0.1352</td><td>0.0409</td><td>&lt;0.001</td><td>1.145（1.057–1.240）</td></tr>
         </table>
       </div>
-      <p style="font-size:13px; margin-top:10px; color:#475569;">判别力 AUC 0.731（模型 C：SOFA 2.0 重算 + 年龄 + 乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95% CI 0.619–0.762），SOFA 1.0 AUC 0.646（95% CI 0.572–0.719）。Hosmer–Lemeshow 校准：SOFA 2.0 p=0.320，模型 C p=0.758。</p>
+      <p style="font-size:13px; margin-top:10px; color:#475569;">判别力 AUC 0.731（95% CI 0.666–0.796；模型 B：SOFA 2.0 重算 + 乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95% CI 0.619–0.762），SOFA 1.0 AUC 0.646（95% CI 0.572–0.719）。Hosmer–Lemeshow 校准：模型 B P=0.545，SOFA 2.0 P=0.320。</p>
+      <p style="font-size:13px; margin-top:10px; color:#475569;"><b>变量筛选</b>：候选变量限基线可获得指标（年龄、性别、休克、乳酸、APACHE-II、WBC、Hgb、PCT、SOFA 2.0），排除缺失&gt;60% 的 CRP/HBP 与存在信息泄漏的 ICU 时长/呼吸机天数。采用 10 折交叉验证 LASSO（λ.1se，强制保留 SOFA 2.0）并以 Bootstrap 500 次评估稳定性：乳酸 55.2%、休克 20.8%、APACHE-II 15.0%、年龄 7.2%。模型 B（SOFA 2.0 + 乳酸）AIC/BIC 最优、校准良好，为最简约模型；含年龄的模型 C 为敏感性分析（年龄 P=0.662，与模型 B 的 DeLong P=0.902）。</p>
     </div>
   </details>
 
   <div class="warning">
-    <b>⚠️ 使用声明</b>：本计算器为<b>科研与教学展示工具</b>，基于当前研究队列数据（n=253）构建的本地更新模型，乳酸增量处于边缘显著、年龄未显示独立增益，且<b>尚未经多中心前瞻性外部验证</b>。结果仅供研究参考，<b>不构成医疗建议，不得作为独立临床决策、诊疗或分诊依据</b>。临床使用需结合专业判断并遵循相关规范与伦理要求。
+    <b>⚠️ 使用声明</b>：本计算器为<b>科研与教学展示工具</b>，基于当前研究队列数据（n=253）构建的本地更新探索性模型，且<b>尚未经多中心前瞻性外部验证</b>。结果仅供研究参考，<b>不构成医疗建议，不得作为独立临床决策、诊疗或分诊依据</b>。临床使用需结合专业判断并遵循相关规范与伦理要求。
   </div>
 
   <div class="footer">
@@ -392,13 +384,12 @@
     else { input.classList.remove('invalid'); err.textContent = ''; }
   }
 
-  function clearErrors() { ['sofa2','lactate','age'].forEach(function(id){ setError(id,''); }); }
+  function clearErrors() { ['sofa2','lactate'].forEach(function(id){ setError(id,''); }); }
 
   function validate(show) {
     var sofa2v = document.getElementById('sofa2').value.trim();
     var lacv = document.getElementById('lactate').value.trim();
-    var agev = document.getElementById('age').value.trim();
-    var sofa2 = parseFloat(sofa2v), lac = parseFloat(lacv), age = parseFloat(agev);
+    var sofa2 = parseFloat(sofa2v), lac = parseFloat(lacv);
     var ok = true;
 
     if (sofa2v === '' || isNaN(sofa2)) { if (show) setError('sofa2','请输入 SOFA 2.0 评分'); ok = false; }
@@ -409,11 +400,7 @@
     else if (lac < 0 || lac > 30) { if (show) setError('lactate','乳酸建议范围 0–30 mmol/L'); ok = false; }
     else if (show) setError('lactate','');
 
-    if (agev === '' || isNaN(age)) { if (show) setError('age','请输入年龄（岁）'); ok = false; }
-    else if (age < 14 || age > 120) { if (show) setError('age','年龄应在 14–120 岁之间'); ok = false; }
-    else if (show) setError('age','');
-
-    return { ok: ok, sofa2: sofa2, lac: lac, age: age };
+    return { ok: ok, sofa2: sofa2, lac: lac };
   }
 
   function gradeInfo(p) {
@@ -454,11 +441,10 @@
     arc.setAttribute('stroke', g.color);
   }
 
-  function updateContrib(sofa2, lac, age) {
-    var cS = 0.1105 * sofa2;
-    var cL = 0.1360 * lac;
-    var cA = 0.0043 * age;
-    var maxRef = Math.max(2.7, cS, cL, cA, 0.1);
+  function updateContrib(sofa2, lac) {
+    var cS = 0.1098 * sofa2;
+    var cL = 0.1352 * lac;
+    var maxRef = Math.max(2.7, cS, cL, 0.1);
     function setBar(idVal, idBar, val) {
       document.getElementById(idVal).textContent = (val >= 0 ? '+' : '') + val.toFixed(3);
       var w = clamp((val / maxRef) * 100, 0, 100);
@@ -466,7 +452,6 @@
     }
     setBar('c_sofa2_val','c_sofa2_bar', cS);
     setBar('c_lac_val','c_lac_bar', cL);
-    setBar('c_age_val','c_age_bar', cA);
   }
 
   function calc() {
@@ -474,14 +459,13 @@
     var v = validate(true);
     if (!v.ok) return;
 
-    var sofa2 = v.sofa2, lac = v.lac, age = v.age;
-    var logit = -1.4848 + 0.1105 * sofa2 + 0.0043 * age + 0.1360 * lac;
+    var sofa2 = v.sofa2, lac = v.lac;
+    var logit = -1.1889 + 0.1098 * sofa2 + 0.1352 * lac;
     var p = 1 / (1 + Math.exp(-logit));
     var g = gradeInfo(p);
 
     document.getElementById('r_sofa2').textContent = sofa2 + ' 分';
     document.getElementById('r_lac').textContent = lac.toFixed(1) + ' mmol/L';
-    document.getElementById('r_age').textContent = age + ' 岁';
     document.getElementById('r_logit').textContent = logit.toFixed(4);
 
     var gb = document.getElementById('gradeBox');
@@ -492,24 +476,23 @@
 
     animateProbability(p);
     updateGauge(p);
-    updateContrib(sofa2, lac, age);
+    updateContrib(sofa2, lac);
     document.getElementById('scaleMarker').style.left = 'calc(' + (clamp(p,0,1)*100).toFixed(1) + '% - 1.5px)';
     document.getElementById('resultWrap').style.display = 'block';
     document.getElementById('copyMsg').textContent = '';
 
-    lastResult = { sofa2: sofa2, lac: lac, age: age, logit: logit, p: p, grade: g.text };
+    lastResult = { sofa2: sofa2, lac: lac, logit: logit, p: p, grade: g.text };
   }
 
   function fillExample() {
     document.getElementById('sofa2').value = 12;
     document.getElementById('lactate').value = 4.2;
-    document.getElementById('age').value = 68;
     clearErrors();
     calc();
   }
 
   function reset() {
-    ['sofa2','lactate','age'].forEach(function(id){ document.getElementById(id).value=''; });
+    ['sofa2','lactate'].forEach(function(id){ document.getElementById(id).value=''; });
     clearErrors();
     document.getElementById('resultWrap').style.display = 'none';
     document.getElementById('copyMsg').textContent = '';
@@ -526,9 +509,8 @@
       '风险分级：' + lastResult.grade,
       'SOFA 2.0（按规则重算）：' + lastResult.sofa2 + ' 分',
       '乳酸：' + lastResult.lac.toFixed(1) + ' mmol/L',
-      '年龄：' + lastResult.age + ' 岁',
       'logit：' + lastResult.logit.toFixed(4),
-      '模型：SOFA 2.0 + 乳酸 + 年龄（AUC 0.731，探索性，未外部验证）',
+      '模型：SOFA 2.0 + 乳酸（AUC 0.731，95% CI 0.666–0.796，探索性，未外部验证）',
       '说明：仅供科研/教学展示，不构成医疗建议。'
     ].join('\n');
     try {
@@ -549,7 +531,7 @@
     setTimeout(function(){ msg.textContent = ''; }, 2500);
   }
 
-  ['sofa2','lactate','age'].forEach(function(id){
+  ['sofa2','lactate'].forEach(function(id){
     var el = document.getElementById(id);
     el.addEventListener('keydown', function(e){ if(e.key==='Enter') calc(); });
     el.addEventListener('input', function(){ setError(id,''); });
