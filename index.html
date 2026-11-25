@@ -190,7 +190,7 @@
       <h2>输入指标</h2>
       <div class="form-row">
         <div class="form-group">
-          <label for="sofa2">SOFA 2.0 评分（按规则重算）</label>
+          <label for="sofa2">SOFA 2.0 评分（2025 版）</label>
           <input type="number" id="sofa2" min="0" max="24" step="1" placeholder="0–24 分" inputmode="numeric">
           <div class="hint">六个子系统得分之和，范围 0–24 分</div>
           <div class="error-msg" id="err_sofa2"></div>
@@ -231,8 +231,8 @@
           <line x1="332.5" y1="51" x2="332.5" y2="61" stroke="#334155" stroke-width="2"/>
           <text x="338" y="60" font-size="12" fill="#334155">0.646</text>
 
-          <!-- SOFA 2.0 重算: AUC 0.691, 95%CI 0.619-0.762 -->
-          <text x="10" y="90" font-size="13" fill="#334155">SOFA 2.0（重算）</text>
+          <!-- SOFA 2.0（2025 版）: AUC 0.691, 95%CI 0.619-0.762 -->
+          <text x="10" y="90" font-size="13" fill="#334155">SOFA 2.0（2025 版）</text>
           <rect x="150" y="80" width="159" height="16" rx="4" fill="#2e75b6"/>
           <line x1="249" y1="88" x2="368" y2="88" stroke="#334155" stroke-width="2"/>
           <line x1="249" y1="83" x2="249" y2="93" stroke="#334155" stroke-width="2"/>
@@ -289,7 +289,7 @@
           </div>
           <div>
             <div class="metrics">
-              <div class="metric"><div class="k">SOFA 2.0（重算）</div><div class="v" id="r_sofa2">--</div></div>
+              <div class="metric"><div class="k">SOFA 2.0（2025 版）</div><div class="v" id="r_sofa2">--</div></div>
               <div class="metric"><div class="k">乳酸</div><div class="v" id="r_lac">--</div></div>
               <div class="metric"><div class="k">线性预测值 logit</div><div class="v" id="r_logit">--</div></div>
             </div>
@@ -346,16 +346,16 @@
     </summary>
     <div class="panel-body">
       <p style="font-size:14px; margin-top:12px;">本计算器基于<b>单中心脓毒症队列（n=253，死亡 172 例，68.0%）</b>构建的本地更新（探索性）模型：</p>
-      <div class="note">logit(P) = -1.1889 + 0.1098 × SOFA 2.0（按规则重算） + 0.1352 × 乳酸<br>P = 1 / (1 + e<sup>−logit</sup>)</div>
+      <div class="note">logit(P) = -1.1889 + 0.1098 × SOFA 2.0（2025 版） + 0.1352 × 乳酸<br>P = 1 / (1 + e<sup>−logit</sup>)</div>
       <div class="table-wrap">
         <table style="margin-top:12px;">
           <tr><th>预测因子</th><th>回归系数 β</th><th>SE</th><th>P 值</th><th>OR（95% CI）</th></tr>
           <tr><td>截距</td><td>-1.1889</td><td>0.4048</td><td>0.003</td><td>0.305（0.138–0.673）</td></tr>
-          <tr><td>SOFA 2.0（按规则重算）</td><td>0.1098</td><td>0.0367</td><td>0.003</td><td>1.116（1.039–1.199）</td></tr>
+          <tr><td>SOFA 2.0（2025 版）</td><td>0.1098</td><td>0.0367</td><td>0.003</td><td>1.116（1.039–1.199）</td></tr>
           <tr><td>乳酸（mmol/L）</td><td>0.1352</td><td>0.0409</td><td>&lt;0.001</td><td>1.145（1.057–1.240）</td></tr>
         </table>
       </div>
-      <p style="font-size:13px; margin-top:10px; color:#475569;">判别力 AUC 0.731（95% CI 0.666–0.796；模型 B：SOFA 2.0 重算 + 乳酸）；SOFA 2.0（重算）单独 AUC 0.691（95% CI 0.619–0.762），SOFA 1.0 AUC 0.646（95% CI 0.572–0.719）。Hosmer–Lemeshow 校准：模型 B P=0.545，SOFA 2.0 P=0.320。</p>
+      <p style="font-size:13px; margin-top:10px; color:#475569;">判别力 AUC 0.731（95% CI 0.666–0.796；模型 B：SOFA 2.0（2025 版） + 乳酸）；SOFA 2.0（2025 版）单独 AUC 0.691（95% CI 0.619–0.762），SOFA 1.0 AUC 0.646（95% CI 0.572–0.719）。Hosmer–Lemeshow 校准：模型 B P=0.545，SOFA 2.0 P=0.320。</p>
       <p style="font-size:13px; margin-top:10px; color:#475569;"><b>变量筛选</b>：候选变量限基线可获得指标（年龄、性别、休克、乳酸、APACHE-II、WBC、Hgb、PCT、SOFA 2.0），排除缺失&gt;60% 的 CRP/HBP 与存在信息泄漏的 ICU 时长/呼吸机天数。采用 10 折交叉验证 LASSO（λ.1se，强制保留 SOFA 2.0）并以 Bootstrap 1000 次评估稳定性：乳酸 60.0%、休克 22.9%、APACHE-II 15.3%、年龄 7.2%。模型 B（SOFA 2.0 + 乳酸）AIC/BIC 最优、校准良好，为最简约模型；含年龄的模型 C 为敏感性分析（年龄 P=0.662，与模型 B 的 DeLong P=0.902）。</p>
     </div>
   </details>
@@ -366,7 +366,7 @@
 
   <div class="footer">
     SOFA 2.0 官方评分来源：Ranzani OT, et al. JAMA. 2025;334(23):2090<br>
-    数据来源：当前研究数据（按规则重算/分析） · 更新日期 2026-11-18
+    数据来源：当前研究数据（按 2025 规则计算/分析） · 更新日期 2026-11-18
   </div>
 </div>
 
@@ -507,7 +507,7 @@
       '【SOFA 2.0 风险计算结果（探索性模型）】',
       '预测院内死亡概率：' + fmtP(lastResult.p),
       '风险分级：' + lastResult.grade,
-      'SOFA 2.0（按规则重算）：' + lastResult.sofa2 + ' 分',
+      'SOFA 2.0（2025 版）：' + lastResult.sofa2 + ' 分',
       '乳酸：' + lastResult.lac.toFixed(1) + ' mmol/L',
       'logit：' + lastResult.logit.toFixed(4),
       '模型：SOFA 2.0 + 乳酸（AUC 0.731，95% CI 0.666–0.796，探索性，未外部验证）',
